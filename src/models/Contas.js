@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const Contas = new mongoose.Schema({
-  idPessoa: Number,
+  idPessoa: String,
   saldo: Number,
   limiteSaqueDiario: Number,
   flagAtivo: Boolean,
