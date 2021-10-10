@@ -1,8 +1,7 @@
 const mongoose = require('mongoose');
 
 const Transacoes = new mongoose.Schema({
-  idTransacao: Number,
-  idConta: Number,
+  idConta: String,
   valor: Number,
   dataTransacao: Date,
 });
