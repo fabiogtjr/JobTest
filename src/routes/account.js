@@ -15,22 +15,26 @@ routes.get('/', async (req, res) => {
 
 routes.post('/createAccount', async (req, res) => {
   try {
-    await check(['idPessoa', 'saldo', 'limiteSaqueDiario', 'tipoConta', 'flagAtivo'])
-      .exists()
-      .isLength({ min: 1 })
-      .run(req);
-    await check('idPessoa').isLength({ min: 24, max: 24 }).run(req);
+    await check(['saldo', 'limiteSaqueDiario', 'tipoConta']).exists().isLength({ min: 1 }).run(req);
+    await check('idPessoa').exists().isLength({ min: 24, max: 24 }).run(req);
+
     const result = validationResult(req);
     if (!result?.isEmpty()) return res.status(400).json({ errors: result.array() });
 
-    const userExists = await Pessoas.findOne({ _id: new mongoose.Types.ObjectId(req?.body?.idPessoa) }).exec();
+    const { idPessoa, saldo, limiteSaqueDiario, tipoConta } = req?.body;
+
+    const userExists = await Pessoas.findOne({ _id: new mongoose.Types.ObjectId(idPessoa) }).exec();
     if (!userExists) return res.status(404).json({ error: 'Usuário não encontrado!' });
-    const dupAccount = await Contas.findOne({ idPessoa: new mongoose.Types.ObjectId(req?.body?.idPessoa) }).exec();
+
+    const dupAccount = await Contas.findOne({ idPessoa: new mongoose.Types.ObjectId(idPessoa) }).exec();
     if (dupAccount) return res.status(409).json({ error: 'Conta já cadastrada!' });
 
     const newAccount = await Contas({
-      ...req.body,
-      saldo: parseFloat(req.body.saldo),
+      idPessoa,
+      limiteSaqueDiario,
+      tipoConta,
+      flagAtivo: true,
+      saldo: parseFloat(saldo),
       dataCriacao: dayjs().toISOString(),
     }).save();
 
@@ -42,24 +46,37 @@ routes.post('/createAccount', async (req, res) => {
 
 routes.put('/bankDeposit', async (req, res) => {
   try {
-    await check(['idConta', 'valor']).exists().isLength({ min: 1 }).run(req);
-    await check('idConta').isLength({ min: 24, max: 24 }).run(req);
+    await check('valor').exists().isLength({ min: 1 }).run(req);
+    await check('idConta').exists().isLength({ min: 24, max: 24 }).run(req);
+
     const result = validationResult(req);
     if (!result?.isEmpty()) return res.status(400).json({ errors: result.array() });
 
-    const newTransaction = await Transacoes({ ...req?.body, dataTransacao: dayjs().toISOString() }).save();
-    const newBalance = parseFloat(account?.saldo) + parseFloat(req?.body?.valor);
+    const { idConta, valor } = req?.body;
+
+    const account = await Contas.findOne({ _id: new mongoose.Types.ObjectId(idConta), flagAtivo: true }).exec();
+    if (!account?.length) return res.status(404).json({ error: 'Conta não encontrada!' });
+
+    const newTransaction = await Transacoes({
+      idConta,
+      valor,
+      dataTransacao: dayjs().toISOString(),
+      tipo: 'Depósito',
+    }).save();
+
+    const newBalance = parseFloat(account?.saldo) + parseFloat(valor);
     if (!newTransaction || !newBalance) return res.status(500).json({ error: 'Erro ao efetuar transação!' });
 
     const updateAccount = await Contas.findOneAndUpdate({
-      _id: new mongoose.Types.ObjectId(req?.body?.idConta),
+      _id: new mongoose.Types.ObjectId(idConta),
       saldo: newBalance,
     }).exec();
 
-    if (!updateAccount) return res.status(404).json({ error: 'Conta não encontrada!' });
+    if (!updateAccount) return res.status(500).json({ error: 'Erro ao efetuar transação!' });
 
     return res.status(200).json({ ...updateAccount._doc, saldo: newBalance });
   } catch (err) {
+    console.log(err);
     return res.status(500).json(err);
   }
 });
@@ -72,8 +89,8 @@ routes.get('/getBalance', async (req, res) => {
 
     const idConta = req.query.idConta;
 
-    const account = await Contas.findOne({ _id: new mongoose.Types.ObjectId(idConta) }).exec();
-    if (!account) return res.status(404).json({ error: 'Conta não encontrada!' });
+    const account = await Contas.findOne({ _id: new mongoose.Types.ObjectId(idConta), flagAtivo: true }).exec();
+    if (!account?.length) return res.status(404).json({ error: 'Conta não encontrada!' });
 
     return res.status(200).json(account?.saldo);
   } catch (err) {
@@ -88,19 +105,32 @@ routes.put('/bankWithdraw', async (req, res) => {
     const result = validationResult(req);
     if (!result?.isEmpty()) return res.status(400).json({ errors: result.array() });
 
-    const newTransaction = await Transacoes({ ...req?.body, dataTransacao: dayjs().toISOString() }).save();
+    const { idConta, valor } = req?.body;
+
+    const account = await Contas.findOne({ _id: new mongoose.Types.ObjectId(idConta), flagAtivo: true }).exec();
+    if (!account?.length) return res.status(404).json({ error: 'Conta não encontrada!' });
+
     const accountBalance = parseFloat(account?.saldo);
-    const withdrawValue = parseFloat(req?.body?.valor);
+    const withdrawValue = parseFloat(valor);
     if (withdrawValue > accountBalance) return res.status(404).json({ error: 'Saldo Insuficiente!' });
-    const newBalance = parseFloat(account?.saldo) - parseFloat(req?.body?.valor);
+
+    const newTransaction = await Transacoes({
+      idConta,
+      valor,
+      dataTransacao: dayjs().toISOString(),
+      tipo: 'Retirada',
+    }).save();
+
+    const newBalance = parseFloat(account?.saldo) - parseFloat(valor);
+
     if (!newTransaction || !newBalance) return res.status(500).json({ error: 'Erro ao efetuar transação!' });
 
     const updateAccount = await Contas.findOneAndUpdate({
-      _id: new mongoose.Types.ObjectId(req?.body?.idConta),
+      _id: new mongoose.Types.ObjectId(idConta),
       saldo: newBalance,
     }).exec();
 
-    if (!updateAccount) return res.status(404).json({ error: 'Conta não encontrada!' });
+    if (!updateAccount) return res.status(500).json({ error: 'Erro ao efetuar transação!' });
 
     return res.status(200).json({ ...updateAccount._doc, saldo: newBalance });
   } catch (err) {
@@ -114,8 +144,10 @@ routes.put('/disableAccount', async (req, res) => {
     const result = validationResult(req);
     if (!result?.isEmpty()) return res.status(400).json({ errors: result.array() });
 
+    const { idConta } = req?.body;
+
     const updateAccount = await Contas.findOneAndUpdate({
-      _id: new mongoose.Types.ObjectId(req?.body?.idConta),
+      _id: new mongoose.Types.ObjectId(idConta),
       flagAtivo: false,
     }).exec();
 
@@ -135,8 +167,8 @@ routes.get('/bankStatement', async (req, res) => {
 
     const { idConta } = req.query;
 
-    const account = await Contas.find({ id: new mongoose.Types.ObjectId(idConta) }).exec();
-    if (!account) return res.status(404).json({ error: 'Conta não encontrada!' });
+    const account = await Contas.find({ id: new mongoose.Types.ObjectId(idConta), flagAtivo: true }).exec();
+    if (!account?.length) return res.status(404).json({ error: 'Conta não encontrada!' });
 
     const statement = await Transacoes.find({ idConta: idConta });
 
@@ -155,8 +187,8 @@ routes.get('/bankStatementByperiod', async (req, res) => {
 
     const { idConta, startDate, endDate } = req.query;
 
-    const account = await Contas.find({ id: new mongoose.Types.ObjectId(idConta) }).exec();
-    if (!account) return res.status(404).json({ error: 'Conta não encontrada!' });
+    const account = await Contas.find({ id: new mongoose.Types.ObjectId(idConta), flagAtivo: true }).exec();
+    if (!account?.length) return res.status(404).json({ error: 'Conta não encontrada!' });
 
     const statement = await Transacoes.find({
       idConta: idConta,
