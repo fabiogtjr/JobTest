@@ -1,0 +1,323 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "DOCK API's",
+        "description": "DOCK API's Documentation",
+        "version": "1.0"
+    },
+    "schemes": [
+        "http"
+    ],
+    "paths": {
+        "/account/createAccount": {
+            "post": {
+                "tags": [
+                    "Conta"
+                ],
+                "summary": "Cria uma conta",
+                "description": "",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "Dados para criação da conta",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Contas"
+                        }
+                    }
+                ]
+            }
+        },
+        "/account/getBalance?{idConta='value'}": {
+            "get": {
+                "tags": [
+                    "Conta"
+                ],
+                "summary": "Retorna o saldo da conta",
+                "description": "",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "idConta",
+                        "description": "ID da conta",
+                        "required": true,
+                        "type": "string",
+                        "format": "string"
+                    }
+                ]
+            }
+        },
+        "/account/bankStatement?{idConta='value'}": {
+            "get": {
+                "tags": [
+                    "Conta"
+                ],
+                "summary": "Retorna o extrato da conta",
+                "description": "",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "idConta",
+                        "description": "ID da conta",
+                        "required": true,
+                        "type": "string",
+                        "format": "string"
+                    }
+                ]
+            }
+        },
+        "/account/bankStatementByperiod?{idConta='value'&startDate='Date'&endDate='Date}": {
+            "get": {
+                "tags": [
+                    "Conta"
+                ],
+                "summary": "Retorna o extrato da conta por período",
+                "description": "",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "idConta",
+                        "description": "ID da conta",
+                        "required": true,
+                        "type": "string",
+                        "format": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "startDate",
+                        "description": "Data inicial",
+                        "required": true,
+                        "type": "string",
+                        "format": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "endDate",
+                        "description": "Data final",
+                        "required": true,
+                        "type": "string",
+                        "format": "string"
+                    }
+                ]
+            }
+        },
+        "/account/disableAccount": {
+            "put": {
+                "tags": [
+                    "Conta"
+                ],
+                "summary": "Desativa uma conta",
+                "description": "",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "Dados para criação da conta",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/DesativaConta"
+                        }
+                    }
+                ]
+            }
+        },
+        "/account/bankWithdraw": {
+            "put": {
+                "tags": [
+                    "Conta"
+                ],
+                "summary": "Realiza um saque",
+                "description": "",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "Dados para criação da conta",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/DepositoSaque"
+                        }
+                    }
+                ]
+            }
+        },
+        "/account/bankDeposit": {
+            "put": {
+                "tags": [
+                    "Conta"
+                ],
+                "summary": "Realiza um depósito",
+                "description": "",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "Dados para criação da conta",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/DepositoSaque"
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "definitions": {
+        "Contas": {
+            "type": "object",
+            "required": [
+                "idPessoa",
+                "saldo",
+                "limiteSaqueDiario",
+                "tipoConta"
+            ],
+            "properties": {
+                "idPessoa": {
+                    "type": "string"
+                },
+                "saldo": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "limiteSaqueDiario": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "tipoConta": {
+                    "type": "integer",
+                    "format": "int32"
+                }
+            },
+            "xml": {
+                "name": "Contas"
+            }
+        },
+        "Pessoas": {
+            "type": "object",
+            "required": [
+                "nome",
+                "cpf",
+                "dataNascimento"
+            ],
+            "properties": {
+                "nome": {
+                    "type": "string"
+                },
+                "cpf": {
+                    "type": "string"
+                },
+                "dataNascimento": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            },
+            "xml": {
+                "name": "Contas"
+            }
+        },
+        "Transacoes": {
+            "type": "object",
+            "required": [
+                "idConta",
+                "valor",
+                "dataTransacao",
+                "tipo"
+            ],
+            "properties": {
+                "idConta": {
+                    "type": "string"
+                },
+                "valor": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "dataTransacao": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "tipo": {
+                    "type": "string"
+                }
+            },
+            "xml": {
+                "name": "Contas"
+            }
+        },
+        "DesativaConta": {
+            "type": "object",
+            "required": [
+                "idConta"
+            ],
+            "properties": {
+                "idConta": {
+                    "type": "string"
+                }
+            },
+            "xml": {
+                "name": "Contas"
+            }
+        },
+        "DepositoSaque": {
+            "type": "object",
+            "required": [
+                "idConta",
+                "valor"
+            ],
+            "properties": {
+                "idConta": {
+                    "type": "string"
+                },
+                "valor": {
+                    "type": "integer",
+                    "format": "int32"
+                }
+            },
+            "xml": {
+                "name": "Contas"
+            }
+        }
+    }
+}

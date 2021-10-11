@@ -9,12 +9,10 @@ const Contas = require('../models/Contas');
 const Pessoas = require('../models/Pessoas');
 const Transacoes = require('../models/Transacoes');
 
-routes.get('/', async (req, res) => {
-  return res.status(200).json(`Bem vindo as API's Dock`);
-});
-
 routes.post('/createAccount', async (req, res) => {
   try {
+    console.log(req?.body)
+
     await check(['saldo', 'limiteSaqueDiario', 'tipoConta']).exists().isLength({ min: 1 }).run(req);
     await check('idPessoa').exists().isLength({ min: 24, max: 24 }).run(req);
 
