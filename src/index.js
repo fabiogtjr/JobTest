@@ -9,7 +9,7 @@ const options = {
   explorer: true,
 };
 
-mongoose.connect('mongodb://localhost:27017/dockerapp');
+mongoose.connect('mongodb://localhost:27017/dockapp');
 
 const app = express();
 

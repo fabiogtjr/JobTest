@@ -85,7 +85,7 @@
                 ]
             }
         },
-        "/account/bankStatementByperiod?{idConta='value'&startDate='Date'&endDate='Date}": {
+        "/account/bankStatementByperiod?{idConta='value'&startDate='DD-MM-YYYY'&endDate='DD-MM-YYYY}": {
             "get": {
                 "tags": [
                     "Conta"
