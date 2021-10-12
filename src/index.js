@@ -9,10 +9,7 @@ const options = {
   explorer: true,
 };
 
-mongoose.connect(
-  'mongodb://ugoppa1cr6f5xpjq7fjt:eHWJRMy7g10CqupBa2HZ@bvds6tc7azukcmw-mongodb.services.clever-cloud.com:27017/bvds6tc7azukcmw',
-  { useNewUrlParser: true, useUnifiedTopology: true }
-);
+mongoose.connect('mongodb://localhost:27017/dockerapp');
 
 const app = express();
 

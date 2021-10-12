@@ -11,8 +11,6 @@ const Transacoes = require('../models/Transacoes');
 
 routes.post('/createAccount', async (req, res) => {
   try {
-    console.log(req?.body)
-
     await check(['saldo', 'limiteSaqueDiario', 'tipoConta']).exists().isLength({ min: 1 }).run(req);
     await check('idPessoa').exists().isLength({ min: 24, max: 24 }).run(req);
 
@@ -53,7 +51,7 @@ routes.put('/bankDeposit', async (req, res) => {
     const { idConta, valor } = req?.body;
 
     const account = await Contas.findOne({ _id: new mongoose.Types.ObjectId(idConta), flagAtivo: true }).exec();
-    if (!account?.length) return res.status(404).json({ error: 'Conta não encontrada!' });
+    if (!account) return res.status(404).json({ error: 'Conta não encontrada!' });
 
     const newTransaction = await Transacoes({
       idConta,
@@ -74,7 +72,6 @@ routes.put('/bankDeposit', async (req, res) => {
 
     return res.status(200).json({ ...updateAccount._doc, saldo: newBalance });
   } catch (err) {
-    console.log(err);
     return res.status(500).json(err);
   }
 });
@@ -88,7 +85,7 @@ routes.get('/getBalance', async (req, res) => {
     const idConta = req.query.idConta;
 
     const account = await Contas.findOne({ _id: new mongoose.Types.ObjectId(idConta), flagAtivo: true }).exec();
-    if (!account?.length) return res.status(404).json({ error: 'Conta não encontrada!' });
+    if (!account) return res.status(404).json({ error: 'Conta não encontrada!' });
 
     return res.status(200).json(account?.saldo);
   } catch (err) {
@@ -106,7 +103,7 @@ routes.put('/bankWithdraw', async (req, res) => {
     const { idConta, valor } = req?.body;
 
     const account = await Contas.findOne({ _id: new mongoose.Types.ObjectId(idConta), flagAtivo: true }).exec();
-    if (!account?.length) return res.status(404).json({ error: 'Conta não encontrada!' });
+    if (!account) return res.status(404).json({ error: 'Conta não encontrada!' });
 
     const accountBalance = parseFloat(account?.saldo);
     const withdrawValue = parseFloat(valor);
@@ -166,7 +163,7 @@ routes.get('/bankStatement', async (req, res) => {
     const { idConta } = req.query;
 
     const account = await Contas.find({ id: new mongoose.Types.ObjectId(idConta), flagAtivo: true }).exec();
-    if (!account?.length) return res.status(404).json({ error: 'Conta não encontrada!' });
+    if (!account) return res.status(404).json({ error: 'Conta não encontrada!' });
 
     const statement = await Transacoes.find({ idConta: idConta });
 
@@ -186,11 +183,14 @@ routes.get('/bankStatementByperiod', async (req, res) => {
     const { idConta, startDate, endDate } = req.query;
 
     const account = await Contas.find({ id: new mongoose.Types.ObjectId(idConta), flagAtivo: true }).exec();
-    if (!account?.length) return res.status(404).json({ error: 'Conta não encontrada!' });
+    if (!account) return res.status(404).json({ error: 'Conta não encontrada!' });
+
+    const formatedStartDate = new Date(startDate.replace( /(\d{2})-(\d{2})-(\d{4})/, "$2/$1/$3"))
+    const formatedEndDate = new Date(endDate.replace( /(\d{2})-(\d{2})-(\d{4})/, "$2/$1/$3"))
 
     const statement = await Transacoes.find({
       idConta: idConta,
-      dataTransacao: { $gte: dayjs(startDate).toISOString(), $lte: dayjs(endDate).toISOString() },
+      dataTransacao: { $gte: dayjs(formatedStartDate).toISOString(), $lte: dayjs(formatedEndDate).toISOString() },
     });
 
     return res.status(200).json(statement);
