@@ -4,7 +4,8 @@ Como utilizar a aplicação
 
 1 - Clone o repósitório\
 2 - Abra o terminal, e entre no diretório da aplicação\
-3 - Execute o comando: "docker-compose up"
+3 - Instale as dependências utilizando yarn install ou npm install\
+4 - Execute o comando: "docker-compose up --build"
 
 As tecnlogias utilizadas foram:
 
