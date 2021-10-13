@@ -9,7 +9,16 @@ const options = {
   explorer: true,
 };
 
-mongoose.connect('mongodb://localhost:27017/dockapp');
+mongoose
+  .connect('mongodb://db:27017/dockapp', {
+    useNewUrlParser: true,
+  })
+  .then(result => {
+    console.log('MongoDB Conectado');
+  })
+  .catch(error => {
+    console.log(error);
+  });
 
 const app = express();
 

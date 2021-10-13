@@ -1,4 +1,15 @@
 FROM node:14
-FROM mongo:5.0
 
-WORKDIR /usr/src/app
+WORKDIR /node-app
+
+COPY package*.json ./
+
+RUN yarn install --silent
+
+RUN yarn global add nodemon
+
+COPY . . 
+
+EXPOSE 8080
+
+CMD yarn dev
